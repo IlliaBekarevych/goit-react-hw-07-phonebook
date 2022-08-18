@@ -1,30 +1,25 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { getContacts } from 'redux/contacts/contact-selectors';
-import { addContact } from 'redux/contacts/contact-actions';
+import { useState } from 'react';
+import {
+  useAddContactMutation,
+  useGetContactsQuery,
+} from 'redux/contacts/contactsAPI';
 import s from './index.module.css';
 
 function ContactForm() {
+  const { data } = useGetContactsQuery();
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
-  const contacts = useSelector(getContacts);
-  const dispatch = useDispatch();
+  const [addContact, { isLoading }] = useAddContactMutation();
 
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
-
-  const hendelSubmit = e => {
+  const hendelSubmit = async e => {
     e.preventDefault();
     if (
-      contacts.find(
-        contact => contact.name.toLowerCase() === name.toLowerCase()
-      )
+      data.find(contact => contact.name.toLowerCase() === name.toLowerCase())
     ) {
       alert(name + ' is alredy in contacts');
       return;
     }
-    dispatch(addContact(name, number));
+    await addContact({ name, number });
     setName('');
     setNumber('');
   };
@@ -57,7 +52,7 @@ function ContactForm() {
           required
         />
       </label>
-      <button type="submit" className={s.formBtn}>
+      <button type="submit" className={s.formBtn} disabled={isLoading}>
         Add contact
       </button>
     </form>
